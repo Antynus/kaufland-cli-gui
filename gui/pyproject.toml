@@ -1,19 +1,19 @@
 [project]
 name = "kaufland-receipts"
-version = "0.1.0"
-description = "Browse and export your Kaufland Card digital receipts"
+version = "0.2.0"
+description = "Kaufland, Lidl and any Croatian fiscal receipt in one app"
 requires-python = ">=3.10"
 license = "MIT"
-dependencies = ["flet==1.1.3"]
+dependencies = ["flet==1.1.3", "pillow"]
 
 [dependency-groups]
-dev = ["flet[all]==1.1.3"]
+dev = ["flet[all]==1.1.3", "zxing-cpp", "pillow"]
 
 [tool.flet]
 org = "io.github.kauflandcli"
-product = "Kaufland Receipts"
+product = "Receipts"
 company = "kaufland-cli contributors"
-copyright = "MIT licensed. Unofficial, not affiliated with Kaufland."
+copyright = "MIT licensed. Unofficial, not affiliated with any store."
 
 [tool.flet.app]
 path = "src"
@@ -21,3 +21,15 @@ module = "main"
 
 [tool.flet.android]
 adaptive_icon_background = "#7C3AED"
+permissions = ["camera"]
+# In-app sign-in page (Lidl), camera for QR scanning, and a QR decoder with Android wheels.
+dependencies = ["flet-webview==1.1.3", "flet-camera==1.1.3", "pyzbar"]
+
+[tool.flet.windows]
+dependencies = ["zxing-cpp"]
+
+[tool.flet.linux]
+dependencies = ["zxing-cpp"]
+
+[tool.flet.macos]
+dependencies = ["zxing-cpp"]

@@ -1,6 +1,8 @@
 # kaufland-cli
 
-Unofficial CLI for Kaufland Card digital receipts. It exports your purchase history as JSON or CSV: item names, quantities, prices and discounts, with no screenshots of the app.
+Unofficial CLI for Kaufland Card digital receipts, plus a receipts app for PC and Android that also covers Lidl and any Croatian fiscal receipt.
+
+The CLI exports your purchase history as JSON or CSV: item names, quantities, prices and discounts, with no screenshots of the app.
 
 <p>
   <img src="docs/screenshots/desktop-overview.png" width="640" alt="Desktop app, overview dashboard">
@@ -9,24 +11,35 @@ Unofficial CLI for Kaufland Card digital receipts. It exports your purchase hist
 
 ## App for PC and Android
 
-There is also a graphical app in [`gui/`](gui/) built with [Flet](https://flet.dev) (Python on Flutter). It reuses this package for login and fetching and adds:
+There is also a graphical app in [`gui/`](gui/) built with [Flet](https://flet.dev) (Python on Flutter). It collects receipts from several sources into one place:
 
-- a dashboard with total spent and saved, average basket, monthly spending and top stores
-- a searchable receipt list with itemised details
-- a product view of everything you've bought, sorted by money spent
-- CSV and JSON export, country picker, and light, dark or system theme
-- a side rail on wide windows and a bottom bar on phones; one codebase for both
+| Source | How it connects | What you get |
+|---|---|---|
+| **Kaufland** | email and password (this package) | every item, price and discount |
+| **Lidl Plus** | Lidl's own sign-in page: inside the app on Android, a Chrome/Edge window on PC | every item, price and discount |
+| **Any Croatian shop** (Konzum, Studenac, Plodine, SPAR, Müller, Offertissima, IKEA, Decathlon, Shell…) | scan the fiscal QR code with the camera, pick a photo, or paste the QR link | shop, date, time and total |
+| **Anything else** | a [store plug-in](gui/PLUGINS.md): one Python file per shop or API | whatever the plug-in returns |
+
+On top of that:
+
+- a dashboard with spending by month, by category and by shop
+- shops are grouped by name and given a category (groceries, fuel, home, sport…) that you can change
+- a searchable receipt list, and a product view of everything you've bought across Kaufland and Lidl
+- CSV and JSON export, and light, dark or system theme
+- a side rail on wide windows and a bottom bar on phones, from one codebase
 - demo data, so you can try the app without an account
 
 | | | |
 |---|---|---|
-| <img src="docs/screenshots/desktop-receipt.png" width="420"> | <img src="docs/screenshots/android-products.png" width="180"> | <img src="docs/screenshots/android-receipt.png" width="180"> |
+| <img src="docs/screenshots/desktop-stores.png" width="420"> | <img src="docs/screenshots/desktop-scan.png" width="420"> | <img src="docs/screenshots/android-stores.png" width="180"> |
+
+Fiscal QR codes don't include the shop name or the items, so you pick the shop once and the app suggests it next time. Decathlon and IKEA accounts aren't built in: both sign-in pages are behind Cloudflare bot protection, and their purchase APIs aren't public. [PLUGINS.md](gui/PLUGINS.md) explains how to add them as plug-ins if you record their app traffic.
 
 ### Download
 
 The [Build GUI apps](.github/workflows/gui.yml) workflow builds the Android APK and the Windows, Linux and macOS apps. Find them under the run's **Artifacts** in the Actions tab. When you push a `v*` tag, they are also attached to a GitHub release.
 
-The PC builds are portable zips (`kaufland-receipts-windows-portable.zip`, `-linux-`, `-macos-`). They need no installer: unzip anywhere, including a USB stick, and run the `.exe` inside on Windows, the executable on Linux, or the `.app` on macOS. The portable app keeps your login in the system's app data folder, not next to the exe.
+The PC builds are portable zips (`kaufland-receipts-windows-portable.zip`, `-linux-`, `-macos-`). They need no installer: unzip anywhere, including a USB stick, and run the `.exe` inside on Windows, the executable on Linux, or the `.app` on macOS. The portable app keeps your sign-ins and receipts in the system's app data folder, not next to the exe.
 
 To install the APK, copy it to your phone, open it, and allow installs from that source. The APK is debug-signed. Android shows a warning because it does not come from the Play Store.
 

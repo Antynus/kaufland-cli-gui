@@ -8,7 +8,7 @@ The app has three ways to get receipts:
 
 ## Installing a plug-in
 
-Stores › Plug-ins › **Install plug-in**, then choose the `.py` file. It is copied to the app's `plugins` folder (the path is shown on the same screen) and loaded straight away. If it fails to load, the error is shown there and the app keeps working.
+Stores › Plug-ins › **Install from link** and paste a link to the `.py` file (a GitHub page link works), or **From a file** to pick one on the device. It is copied to the app's `plugins` folder (the path is shown on the same screen) and loaded straight away. If it fails to load, the error is shown there and the app keeps working.
 
 A plug-in runs with the same access as the app, including your saved sign-ins, so only install files you trust.
 

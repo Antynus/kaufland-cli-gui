@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import threading
+import urllib.parse
+import urllib.request
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
@@ -1402,7 +1404,12 @@ class App:
                     ft.Row(
                         [
                             ft.FilledTonalButton(
-                                "Install plug-in",
+                                "Install from link",
+                                icon=ft.Icons.LINK,
+                                on_click=lambda _e: self.plugin_link_dialog(),
+                            ),
+                            ft.TextButton(
+                                "From a file",
                                 icon=ft.Icons.EXTENSION_OUTLINED,
                                 on_click=lambda _e: self.page.run_task(self.install_plugin),
                             ),
@@ -1623,6 +1630,59 @@ class App:
         self.load_receipts()
         self.rerender()
         self.toast(f"Installed {f.name}")
+
+    def plugin_link_dialog(self) -> None:
+        field = ft.TextField(
+            label="Link to the plug-in (.py)",
+            hint_text="https://github.com/…/my_shop.py",
+            multiline=True,
+            min_lines=2,
+            autofocus=True,
+        )
+
+        async def paste(_e):
+            field.value = await self.clipboard.get() or ""
+            self.page.update()
+
+        async def submit(_e):
+            url = (field.value or "").strip()
+            try:
+                name, source = await asyncio.to_thread(download_plugin, url)
+                await asyncio.to_thread(self.registry.install_plugin, name, source)
+            except StoreError as exc:
+                self.toast(str(exc), error=True)
+                return
+            self.close_dialog()
+            self.load_receipts()
+            self.rerender()
+            self.toast(f"Installed {name}")
+
+        self.page.show_dialog(
+            ft.AlertDialog(
+                title=ft.Text("Install a plug-in"),
+                content=ft.Container(
+                    ft.Column(
+                        [
+                            muted(
+                                "Paste a link to a plug-in file, for example on GitHub. Only install "
+                                "plug-ins "
+                                "from people you trust: they can read your saved sign-ins."
+                            ),
+                            field,
+                        ],
+                        tight=True,
+                        spacing=12,
+                        horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
+                    ),
+                    width=460,
+                ),
+                actions=[
+                    ft.TextButton("Paste", icon=ft.Icons.CONTENT_PASTE, on_click=paste),
+                    ft.TextButton("Cancel", on_click=self.close_dialog),
+                    ft.FilledButton("Install", icon=ft.Icons.DOWNLOAD, on_click=submit),
+                ],
+            )
+        )
 
     def reload_plugins(self, _e=None) -> None:
         self.registry.reload()
@@ -2160,6 +2220,26 @@ class App:
         except Exception as exc:  # noqa: BLE001
             await self.clipboard.set(text)
             self.toast(f"Could not save a file ({exc}); copied to clipboard instead.")
+
+
+def download_plugin(url: str) -> tuple[str, bytes]:
+    """Fetch a plug-in file over HTTPS. GitHub page links are turned into raw-file links."""
+    parts = urllib.parse.urlparse(url)
+    if parts.scheme != "https" or not parts.path.endswith(".py"):
+        raise StoreError("Use an https:// link to a .py file.")
+    if parts.netloc == "github.com" and "/blob/" in parts.path:
+        user_repo, _, rest = parts.path.lstrip("/").partition("/blob/")
+        url = f"https://raw.githubusercontent.com/{user_repo}/{rest}"
+    try:
+        with urllib.request.urlopen(
+            urllib.request.Request(url, headers={"User-Agent": "receipts-app"}), timeout=30
+        ) as response:
+            source = response.read(1_000_001)
+    except OSError as exc:
+        raise StoreError(f"Could not download the plug-in: {exc}") from exc
+    if len(source) > 1_000_000:
+        raise StoreError("That file is too big to be a plug-in.")
+    return Path(parts.path).name, source
 
 
 def main(page: ft.Page) -> None:

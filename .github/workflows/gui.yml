@@ -1,4 +1,4 @@
-name: Build GUI apps
+name: Build Android app
 
 on:
   workflow_dispatch:
@@ -21,9 +21,6 @@ jobs:
       matrix:
         include:
           - { target: apk, os: ubuntu-latest, out: apk }
-          - { target: linux, os: ubuntu-latest, out: linux }
-          - { target: windows, os: windows-latest, out: windows }
-          - { target: macos, os: macos-latest, out: macos }
     defaults:
       run:
         shell: bash

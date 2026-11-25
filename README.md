@@ -37,11 +37,11 @@ Fiscal QR codes don't include the shop name or the items, so you pick the shop o
 
 ### Download
 
-The [Build GUI apps](.github/workflows/gui.yml) workflow builds the Android APK and the Windows, Linux and macOS apps. Find them under the run's **Artifacts** in the Actions tab. When you push a `v*` tag, they are also attached to a GitHub release.
-
-The PC builds are portable zips (`kaufland-receipts-windows-portable.zip`, `-linux-`, `-macos-`). They need no installer: unzip anywhere, including a USB stick, and run the `.exe` inside on Windows, the executable on Linux, or the `.app` on macOS. The portable app keeps your sign-ins and receipts in the system's app data folder, not next to the exe.
+The [Build Android app](.github/workflows/gui.yml) workflow builds the APK. Find it under the run's **Artifacts** in the Actions tab. When you push a `v*` tag, it is also attached to a GitHub release.
 
 To install the APK, copy it to your phone, open it, and allow installs from that source. The APK is debug-signed. Android shows a warning because it does not come from the Play Store.
+
+The same code still runs on a PC with `flet run` (below), which is handy for testing, but only the APK is built.
 
 ### Run from source
 
@@ -57,10 +57,10 @@ uv run --with "flet[all]==1.1.3" flet run src/main.py
 ```sh
 cd gui
 cp -r ../src/kaufland_cli src/
-uv run --with "flet[all]==1.1.3" flet build apk      # or: windows, macos, linux
+uv run --with "flet[all]==1.1.3" flet build apk
 ```
 
-Output lands in `gui/build/<target>/`. The desktop apps need to be built on that OS.
+Output lands in `gui/build/apk/`.
 
 The packaged app keeps its tokens and settings in its own app data folder, not in `~/.config/kaufland-cli`, so you sign in once inside the app.
 

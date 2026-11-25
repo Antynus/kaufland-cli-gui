@@ -49,6 +49,10 @@ def decode_json(raw: bytes) -> Any:
         return None
 
 
+def encode_json(value: Any) -> bytes:
+    return json.dumps(value, ensure_ascii=False).encode("utf-8")
+
+
 def header(headers: Mapping[str, str], name: str) -> str | None:
     for key, value in headers.items():
         if key.lower() == name.lower():

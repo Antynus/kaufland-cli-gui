@@ -15,6 +15,7 @@ classifiers = [
 dependencies = []
 
 [project.scripts]
+receipts = "kaufland_cli.cli:main"
 kaufland = "kaufland_cli.cli:main"
 
 [build-system]

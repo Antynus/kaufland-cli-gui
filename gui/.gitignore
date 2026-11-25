@@ -1,0 +1,4 @@
+build/
+.venv/
+# copied in from ../src by the build workflow
+src/kaufland_cli/

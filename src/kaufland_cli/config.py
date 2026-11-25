@@ -47,6 +47,9 @@ def data_dir() -> Path:
     override = os.getenv("KAUFLAND_DATA_DIR")
     if override:
         return Path(override).expanduser()
+    app_storage = os.getenv("FLET_APP_STORAGE_DATA")  # set inside packaged GUI builds (Android, desktop)
+    if app_storage:
+        return Path(app_storage) / "kaufland-cli"
     base = os.getenv("XDG_CONFIG_HOME") or str(Path.home() / ".config")
     return Path(base).expanduser() / "kaufland-cli"
 

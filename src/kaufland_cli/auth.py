@@ -8,7 +8,7 @@ import os
 import secrets
 import time
 import urllib.parse
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -229,7 +229,12 @@ def _userinfo(token: str) -> dict:
     return info
 
 
-def login(email: str | None = None, password: str | None = None) -> dict:
+def login(
+    email: str | None = None,
+    password: str | None = None,
+    *,
+    otp: Callable[[], str] | None = None,
+) -> dict:
     email = email or os.getenv("KAUFLAND_EMAIL") or input("Kaufland email: ").strip()
     password = password or os.getenv("KAUFLAND_PASSWORD") or getpass.getpass("Password: ")
 
@@ -261,7 +266,7 @@ def login(email: str | None = None, password: str | None = None) -> dict:
         values = result.get("values") or {}
         form.update(
             {
-                "code": input("One-time code: ").strip(),
+                "code": (otp() if otp else input("One-time code: ")).strip(),
                 "action": values.get("action", "verify"),
                 "exchangeId": result.get("exchangeId") or values.get("exchangeId", ""),
                 "verificationType": result.get("verificationType") or values.get("verificationType", ""),

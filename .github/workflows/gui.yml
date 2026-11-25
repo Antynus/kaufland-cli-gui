@@ -65,21 +65,22 @@ jobs:
       - name: Package
         run: |
           cd build/${{ matrix.out }}
-          if [ "${{ matrix.target }}" = "apk" ]; then
-            cp *.apk "$GITHUB_WORKSPACE/kaufland-receipts.apk"
-          elif [ "${{ matrix.target }}" = "windows" ]; then
-            7z a "$GITHUB_WORKSPACE/kaufland-receipts-windows.zip" .
-          else
-            tar -czf "$GITHUB_WORKSPACE/kaufland-receipts-${{ matrix.target }}.tar.gz" .
-          fi
+          dest="$GITHUB_WORKSPACE/kaufland-receipts-${{ matrix.target }}-portable.zip"
+          case "${{ matrix.target }}" in
+            apk) cp *.apk "$GITHUB_WORKSPACE/kaufland-receipts.apk" ;;
+            # Windows/Linux: the folder holds the executable and every library it needs; unzip and run.
+            windows) 7z a -tzip "$dest" . ;;
+            linux) zip -r -y "$dest" . ;;
+            # macOS: ditto keeps the .app bundle's symlinks and permissions intact.
+            macos) ditto -c -k --sequesterRsrc --keepParent *.app "$dest" ;;
+          esac
 
       - uses: actions/upload-artifact@v4
         with:
           name: kaufland-receipts-${{ matrix.target }}
           path: |
             kaufland-receipts*.apk
-            kaufland-receipts-*.zip
-            kaufland-receipts-*.tar.gz
+            kaufland-receipts-*-portable.zip
           if-no-files-found: error
 
   release:

@@ -26,6 +26,8 @@ There is also a graphical app in [`gui/`](gui/) built with [Flet](https://flet.d
 
 The [Build GUI apps](.github/workflows/gui.yml) workflow builds the Android APK and the Windows, Linux and macOS apps. Find them under the run's **Artifacts** in the Actions tab. When you push a `v*` tag, they are also attached to a GitHub release.
 
+The PC builds are portable zips (`kaufland-receipts-windows-portable.zip`, `-linux-`, `-macos-`). They need no installer: unzip anywhere, including a USB stick, and run `kaufland-receipts.exe` on Windows, the `kaufland-receipts` binary on Linux, or the `.app` on macOS. The portable app keeps your login in the system's app data folder, not next to the exe.
+
 To install the APK, copy it to your phone, open it, and allow installs from that source. The APK is debug-signed. Android shows a warning because it does not come from the Play Store.
 
 ### Run from source

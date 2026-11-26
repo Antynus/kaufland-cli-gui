@@ -8,7 +8,7 @@ import urllib.request
 from collections.abc import Mapping
 from typing import Any
 
-from .config import TIMEOUT_SECONDS, KauflandError
+from .config import TIMEOUT_SECONDS, SlipError
 
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -34,7 +34,7 @@ def request(
     except urllib.error.HTTPError as exc:
         return exc.code, exc.read(), dict((exc.headers or {}).items())
     except urllib.error.URLError as exc:
-        raise KauflandError(f"request failed: {exc.reason}") from exc
+        raise SlipError(f"request failed: {exc.reason}") from exc
 
 
 def request_json(method: str, url: str, **kwargs: Any) -> tuple[int, Any]:

@@ -12,8 +12,10 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from . import http
-from .config import (
+from ... import http
+from ...config import SlipError as KauflandError
+from ...config import read_json, write_private_json
+from .constants import (
     AUTHZ_PATH,
     BROWSER_UA,
     CALLBACK_SCHEME,
@@ -25,7 +27,6 @@ from .config import (
     REDIRECT_URI,
     TOKEN_PATH,
     USERINFO_URL,
-    KauflandError,
     data_dir,
     token_path,
     ui_locales,
@@ -35,22 +36,14 @@ MAX_REDIRECT_HOPS = 10
 
 
 def _write_tokens(tokens: dict[str, Any]) -> None:
-    path = token_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temp = path.with_suffix(".tmp")
-    temp.write_text(json.dumps(tokens, indent=2))
-    os.chmod(temp, 0o600)
-    temp.replace(path)
+    write_private_json(token_path(), tokens)
 
 
 def load_tokens() -> dict[str, Any]:
     path = token_path()
     if not path.exists():
-        raise KauflandError("no saved login; run: kaufland login")
-    try:
-        return json.loads(path.read_text())
-    except (OSError, json.JSONDecodeError) as exc:
-        raise KauflandError(f"could not read {path}") from exc
+        raise KauflandError("no saved Kaufland login; run: slip kaufland login")
+    return read_json(path)
 
 
 def logout() -> Path | None:
@@ -92,12 +85,12 @@ def _token_request(form: Mapping[str, str]) -> dict:
 def access_token(*, force_refresh: bool = False) -> tuple[str, str]:
     tokens = load_tokens()
     if not tokens.get("user_id"):
-        raise KauflandError("saved login has no user id; run: kaufland login")
+        raise KauflandError("saved login has no user id; run: slip kaufland login")
     if not force_refresh and tokens.get("expires_at", 0) > time.time() + 60:
         return tokens["access_token"], tokens["user_id"]
     refresh = tokens.get("refresh_token")
     if not refresh:
-        raise KauflandError("access token expired and no refresh token; run: kaufland login")
+        raise KauflandError("access token expired and no refresh token; run: slip kaufland login")
     payload = _token_request(
         {
             "grant_type": "refresh_token",

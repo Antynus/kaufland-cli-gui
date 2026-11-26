@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from ...config import SlipError, config_home, store_dir
+
 CIDAAS_BASE = "https://account.kaufland.com"
 API_BASE = "https://p.crm-dynamics.schwarz"
 USERINFO_URL = f"{CIDAAS_BASE}/users-srv/userinfo"
@@ -23,18 +25,13 @@ BROWSER_UA = (
     "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
 )
 
-TIMEOUT_SECONDS = float(os.getenv("KAUFLAND_TIMEOUT_SECONDS", "30"))
 MAX_PAGE_SIZE = 50
-
-
-class KauflandError(RuntimeError):
-    pass
 
 
 def country() -> str:
     value = os.getenv("KAUFLAND_COUNTRY", "PL").upper()
     if len(value) != 2 or not value.isalpha():
-        raise KauflandError("KAUFLAND_COUNTRY must be a two-letter country code")
+        raise SlipError("KAUFLAND_COUNTRY must be a two-letter country code")
     return value
 
 
@@ -44,12 +41,21 @@ def ui_locales() -> str:
 
 
 def data_dir() -> Path:
+    # KAUFLAND_DATA_DIR keeps its old meaning: the folder that holds tokens.json.
     override = os.getenv("KAUFLAND_DATA_DIR")
     if override:
         return Path(override).expanduser()
-    base = os.getenv("XDG_CONFIG_HOME") or str(Path.home() / ".config")
-    return Path(base).expanduser() / "kaufland-cli"
+    return store_dir("kaufland")
+
+
+def legacy_token_path() -> Path:
+    return config_home() / "kaufland-cli" / "tokens.json"
 
 
 def token_path() -> Path:
-    return data_dir() / "tokens.json"
+    path = data_dir() / "tokens.json"
+    legacy = legacy_token_path()
+    if not path.exists() and not os.getenv("KAUFLAND_DATA_DIR") and legacy.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        legacy.replace(path)
+    return path

@@ -3,13 +3,15 @@ from __future__ import annotations
 import urllib.parse
 from typing import Any
 
-from . import auth, http
-from .config import (
+from ... import http
+from ...config import SlipError as KauflandError
+from ..base import item_row, summary_row
+from . import auth
+from .constants import (
     API_BASE,
     APP_VERSION,
     LOYALTY_CLIENT_ID,
     MAX_PAGE_SIZE,
-    KauflandError,
     country,
 )
 
@@ -93,20 +95,22 @@ def line_items(receipts: list[dict]) -> list[dict]:
                     continue
                 sign = -1 if refund else 1
                 rows.append(
-                    {
-                        "receipt_id": receipt.get("id"),
-                        "timestamp": receipt.get("timestamp"),
-                        "store": store.get("name"),
-                        "city": store.get("city"),
-                        "name": position.get("name"),
-                        "quantity": position.get("quantity", 1),
-                        "unit": position.get("quantityUnit"),
-                        "unit_price": round(_minor(position.get("unitPrice")) * sign, 2),
-                        "total": round(_minor(position.get("total")) * sign, 2),
-                        "currency": receipt.get("currency"),
-                        "gtin": position.get("gtin"),
-                        "refund": refund,
-                    }
+                    item_row(
+                        "kaufland",
+                        receipt_id=receipt.get("id"),
+                        timestamp=receipt.get("timestamp"),
+                        store=store.get("name"),
+                        city=store.get("city"),
+                        name=position.get("name"),
+                        quantity=position.get("quantity", 1),
+                        unit=position.get("quantityUnit"),
+                        unit_price=round(_minor(position.get("unitPrice")) * sign, 2),
+                        total=round(_minor(position.get("total")) * sign, 2),
+                        discount=None,
+                        currency=receipt.get("currency"),
+                        gtin=position.get("gtin"),
+                        refund=refund,
+                    )
                 )
     return rows
 
@@ -116,16 +120,17 @@ def summaries(receipts: list[dict]) -> list[dict]:
     for receipt in receipts:
         store = receipt.get("store") if isinstance(receipt.get("store"), dict) else {}
         rows.append(
-            {
-                "receipt_id": receipt.get("id"),
-                "timestamp": receipt.get("timestamp"),
-                "store": store.get("name"),
-                "city": store.get("city"),
-                "total": round(_minor(receipt.get("sum")), 2),
-                "saving": round(_minor(receipt.get("saving")), 2),
-                "currency": receipt.get("currency"),
-                "items": len(receipt.get("positions") or []),
-                "bonus_points": receipt.get("bonusPoints"),
-            }
+            summary_row(
+                "kaufland",
+                receipt_id=receipt.get("id"),
+                timestamp=receipt.get("timestamp"),
+                store=store.get("name"),
+                city=store.get("city"),
+                total=round(_minor(receipt.get("sum")), 2),
+                saving=round(_minor(receipt.get("saving")), 2),
+                currency=receipt.get("currency"),
+                items=len(receipt.get("positions") or []),
+                bonus_points=receipt.get("bonusPoints"),
+            )
         )
     return rows
